@@ -1,0 +1,11 @@
+{
+  "presets": [
+    "stage-1", 
+    "es2015"
+  ],
+  "plugins": [
+    "transform-object-rest-spread",
+    "transform-class-properties",
+    "transform-es2015-computed-properties"
+  ]
+}
