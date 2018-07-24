@@ -11,6 +11,7 @@ export function reducers(initialState, reducers) {
 }
 
 
+/*
 // TODO: How can we update the wrapped function state?
 // TODO: Why do we actually need this function???
   // Seems this is only a helper function for tests
@@ -29,3 +30,32 @@ export function connect(mapState, mapDispatch = {}) {
     ...mapDispatchToProps
   })
 }
+
+// FIXME: See if this functions need to be handled
+export default function createSystem(requiredComponents = [], callback) {
+  connect((state) => {
+    return {
+      entities: getEntitiesWithComponents(requiredComponents, state)
+    }
+  }, {
+    registerSystem
+  })((props) => {
+    registerSystem(name, requiredComponents)
+    
+    return function iterateEntities() {
+      entities.forEach((entity) => {
+        callback(entity)
+      })
+    }
+}
+
+export function createSystem(requiredComponents = [], callback) {
+  registerSystem(name, requiredComponents)
+  
+  return function iterateEntities() {
+    getEntitiesWithComponents(requiredComponents).forEach((entity) => {
+      callback(entity)
+    })
+  }
+}
+*/

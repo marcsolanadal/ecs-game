@@ -80,7 +80,7 @@ describe('ecs', () => {
     })
   })
 
-  it('should add an entity to the system array when entity have the required components', () => {
+  xit('should add an entity to the system array when entity have the required components', () => {
     
     connect((state) => {
       return {
