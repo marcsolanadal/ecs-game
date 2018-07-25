@@ -1,9 +1,11 @@
 import configureTest from 'utils/testHelpers'
 import { 
   createEntity, 
-  addComponent, 
+  addComponent,
+  createSystem,
   getEntities, 
-  getEntitiesByComponent 
+  getEntitiesByComponent,
+  getSystems
 } from './ecs'
 
 describe('ecs', () => {
@@ -25,6 +27,24 @@ describe('ecs', () => {
     })
   })
 
+  it('should create a new system', () => {
+    store.dispatch(createSystem('uuid', ['test'], jest.fn()))
+
+    expect(getSystems(store.getState())).toEqual([
+      { 
+        id: 'uuid',
+        requiredComponents: ['test'],
+        entities: []
+      }
+    ])
+  })
+
+  it('should avoid creating systems with the same name', () => {
+    const createTestSystem = () => store.dispatch(createSystem('test', ['test'], jest.fn()))
+    createTestSystem();
+    expect(createTestSystem).toThrow('Do not create systems with the same id!')
+  })
+
   it('should add a component to the entity', () => {
     store.dispatch(createEntity('test'))
     store.dispatch(addComponent('test', { 
@@ -35,6 +55,26 @@ describe('ecs', () => {
       'test': {
         'position': { x: 0, y: 0 }
       }
+    })
+  })
+
+  it.only('should add an entity to the system array when entity have the required components', () => {
+    const requiredComponents = ['position']
+
+    store.dispatch(createSystem('uuid', requiredComponents))
+    store.dispatch(createEntity('foo'))
+    store.dispatch(addComponent('foo', { 
+      'position': { x: 10, y: 20 }
+    }))
+
+    const system = getSystems(store.getState()).filter(sys => {
+      return sys.requiredComponents === requiredComponents
+    })
+
+    expect(system).toEqual({
+      id: 'uuid',
+      requiredComponents: ['position'],
+      entities: ['foo']
     })
   })
 
@@ -63,44 +103,6 @@ describe('ecs', () => {
     expect(getEntitiesByComponent('health', store.getState())).toEqual([
       'baz'
     ])
-  })
-
-  it('should create a new system', () => {
-    store.dispatch(registerSystem(['test']))
-
-    expect(store.getState()).toEqual({
-      ecs: {
-        systems: [
-          { 
-            requiredComponents: ['test'],
-            entities: []
-          }
-        ]
-      }
-    })
-  })
-
-  xit('should add an entity to the system array when entity have the required components', () => {
-    
-    connect((state) => {
-      return {
-        entities: getEntitiesWithComponents(['position'], state)
-      }
-    }, {
-      registerSystem,
-      createEntity,
-      addComponent
-    })((props) => {
-      
-      props.registerSystem(['position'])
-      props.createEntity('foo')
-      props.addComponent('foo', { 
-        'position': { x: 10, y: 20 }
-      })
-
-      expect(props.entities).toBe(['foo'])
-    })
-
   })
 
 })
