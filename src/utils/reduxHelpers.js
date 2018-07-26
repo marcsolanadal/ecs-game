@@ -48,14 +48,4 @@ export default function createSystem(requiredComponents = [], callback) {
       })
     }
 }
-
-export function createSystem(requiredComponents = [], callback) {
-  registerSystem(requiredComponents)
-  
-  return function iterateEntities() {
-    getEntitiesWithComponents(requiredComponents).forEach((entity) => {
-      callback(entity)
-    })
-  }
-}
 */

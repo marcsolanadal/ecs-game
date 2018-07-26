@@ -9,7 +9,7 @@ function arrayContainsElements(array, required) {
   }, true)
 }
 
-// FIXME: This is confusing since we're searching by id
+// TODO: Can be improved to pass the parameter to use to search the index
 function findIndexById(array, id) {
   return array.reduce((acc, item, index) => {
     if (item.id === id) {

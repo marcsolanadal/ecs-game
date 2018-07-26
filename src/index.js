@@ -2,15 +2,22 @@ import store from './initializeStore.js'
 
 import { 
   createEntity, 
-  addComponent, 
-} from 'ducks/ecs'
-
+  addComponent,
+  removeComponent,
+  createSystem,
+  getEntities, 
+  getSystems
+} from './ducks/ecs'
 
 window.store = store
 
-store.dispatch(createEntity('test'))
-store.dispatch(addComponent('test', { 
-  'position': { x: 0, y: 0 }
-}))
+// System registration
+store.dispatch(createSystem('sys1', ['position']))
+store.dispatch(createSystem('sys2', ['position', 'health']))
+
+// Entity initialization
+store.dispatch(createEntity('foo'))
+store.dispatch(addComponent('foo', { 'position': { x: 10, y: 20 } }))
+store.dispatch(addComponent('foo', { 'health': { hp: 100 } }))
 
 

@@ -10,13 +10,32 @@ const SYSTEM_REMOVE_ENTITY = 'SYSTEM_REMOVE_ENTITY'
 
 const initialState = {
   entities: {},
-  byComponent: {},
   systems: []
 }
 
-//------------------------------------------------------------------
-// Reducers
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// REDUCERS
+//------------------------------------------------------------------------------
+
+function addEntityToSystem(state, entity) {
+  return {
+    ...state,
+    entities: [
+      ...state.entities,
+      entity
+    ]
+  }
+}
+
+function removeEntityFromSystem(state, index) {
+  return {
+    ...state,
+    entities: [ 
+      ...state.entities.slice(0, index),
+      ...state.entities.slice(index + 1)
+    ]
+  }
+}
 
 export default reducers(initialState, {
 
@@ -59,13 +78,14 @@ export default reducers(initialState, {
   },
 
   [SYSTEM_CREATE]: (state, action) => {
+    const { id, requiredComponents } = action.payload
     return {
       ...state,
       systems: [
         ...state.systems,
         {
-          id:  action.payload.id,
-          requiredComponents: action.payload.requiredComponents,
+          id,
+          requiredComponents,
           entities: []
         }
       ]
@@ -73,61 +93,36 @@ export default reducers(initialState, {
   },
 
   [SYSTEM_ADD_ENTITY]: (state, action) => {
-    const { systemId, entity } = action.payload
-    const index = findIndexById(state.systems, systemId)
-
-    // Avoid having repeated entities
-    if (state.systems[index].entities.indexOf(entity) > -1) {
-      return state
-    }
-
-    const updatedSystem = {
-      ...state.systems[index],
-      entities: [ 
-        ...state.systems[index].entities,
-        entity
-      ]
-    }
-
+    const { systemIndex, entity } = action.payload
     return {
       ...state,
       systems: [
-        ...state.systems.slice(0, index),
-        ...state.systems.slice(index + 1),
-        updatedSystem
+        ...state.systems.slice(0, systemIndex),
+        ...state.systems.slice(systemIndex + 1),
+        addEntityToSystem(state.systems[systemIndex], action.payload.entity)
       ]
     }
   },
 
   [SYSTEM_REMOVE_ENTITY]: (state, action) => {
-    const { systemId, entity } = action.payload
-    
-    const index = findIndexById(state.systems, systemId)
-    const entityIndex = state.systems[index].entities.indexOf(entity)
-
-    const updatedSystem = {
-      ...state.systems[index],
-      entities: [ 
-        ...state.systems[index].entities.slice(0, entityIndex),
-        ...state.systems[index].entities.slice(entityIndex + 1),
-      ]
-    }
+    const { systemIndex, entity } = action.payload
+    const entityIndex = state.systems[systemIndex].entities.indexOf(entity)
 
     return {
       ...state,
       systems: [
-        ...state.systems.slice(0, index),
-        ...state.systems.slice(index + 1),
-        updatedSystem
+        ...state.systems.slice(0, systemIndex),
+        ...state.systems.slice(systemIndex + 1),
+        removeEntityFromSystem(state.systems[systemIndex], entityIndex)
       ]
     }
   }
 
 })
 
-//------------------------------------------------------------------
-// Action creators
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// ACTION CREATORS
+//------------------------------------------------------------------------------
 
 export const createEntity = (name) => {
   return {
@@ -149,12 +144,14 @@ export const addComponent = (entity, component) => {
     })
 
     const componentNames = Object.keys(getEntityComponents(entity, getState()))
-    getSystems(getState()).forEach(system => {
-      if (arrayContainsElements(componentNames, system.requiredComponents)) {
+    getSystems(getState()).forEach((system, _, systems) => {
+      if (system.entities.indexOf(entity) === -1 
+        && arrayContainsElements(componentNames, system.requiredComponents)
+      ) {
         dispatch({
           type: SYSTEM_ADD_ENTITY,
           payload: {
-            systemId: system.id,
+            systemIndex: findIndexById(systems, system.id),
             entity
           }
         })
@@ -181,14 +178,14 @@ export function removeComponent(entity, componentId) {
     const componentNames = Object.keys(getEntityComponents(entity, getState()))
       .filter(key => key !== componentId)
 
-    getSystems(getState()).forEach(system => {
+    getSystems(getState()).forEach((system, _, systems) => {
       if (system.entities.indexOf(entity) > -1
-        && arrayContainsElements(componentNames, system.requiredComponents) === false
+        && !arrayContainsElements(componentNames, system.requiredComponents)
       ) {
         dispatch({
           type: SYSTEM_REMOVE_ENTITY,
           payload: {
-            systemId: system.id,
+            systemIndex: findIndexById(systems, system.id),
             entity
           }
         })
@@ -214,15 +211,14 @@ export const createSystem = (id, requiredComponents) => {
   }
 }
 
-//------------------------------------------------------------------
-// Selectors
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// SELECTORS
+//------------------------------------------------------------------------------
 
 export const getEntities = (state) => state.ecs.entities
+export const getSystems = (state) => state.ecs.systems
 
 const getEntityComponents = (id, state) => getEntities(state)[id]
-
-export const getSystems = (state) => state.ecs.systems
 
 const systemExists = (id, state) => {
   return getSystems(state).filter(sys => sys.id === id).length > 0

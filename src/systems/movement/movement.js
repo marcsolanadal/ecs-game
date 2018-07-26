@@ -1,10 +1,10 @@
-// import { createSystem, changeEntity } from 'utils/ecsHelpers'
+import { registerSystem, changeEntity } from 'utils/ecsHelpers'
 
-// export default createSystem(
-//   [ 'position', 'velocity' ], 
-//   (entity) => {
-//     changeEntity(entity.id, { 
-//       position: { x: x + 1 }
-//     })
-//   }
-// )
+export default registerSystem(
+  [ 'position', 'velocity' ], 
+  (entity) => {
+    changeEntity(entity.id, { 
+      position: { x: x + 1 }
+    })
+  }
+)

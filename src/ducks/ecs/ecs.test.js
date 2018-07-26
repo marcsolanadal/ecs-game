@@ -73,14 +73,6 @@ describe('ecs', () => {
     })
   })
 
-  xit('should only get the systems that with the requiredComponents', () => {
-    store.dispatch(createSystem('sys1', ['foo']))
-    store.dispatch(createSystem('sys2', ['foo', 'baz', 'bar']))
-    store.dispatch(createSystem('sys3', ['bar', 'foo']))
-
-    expect(getSystemsWithComponents(['foo', 'bar'], store.getState())).toEqual(['sys2', 'sys3'])
-  })
-
   it('should add an entity to the system array when entity have the required components', () => {
     store.dispatch(createSystem('sys1', ['position']))
     store.dispatch(createEntity('foo'))
