@@ -1,14 +1,20 @@
 import { reducers } from 'utils/reduxHelpers'
+import { arrayContainsElements, findIndex } from './helpers'
 
 const ENTITY_CREATE = 'ENTITY_CREATE'
 const COMPONENT_ADD = 'COMPONENT_ADD'
 const SYSTEM_CREATE = 'SYSTEM_CREATE'
+const SYSTEM_ADD_ENTITY = 'SYSTEM_ADD_ENTITY'
 
 const initialState = {
   entities: {},
   byComponent: {},
   systems: []
 }
+
+//------------------------------------------------------------------
+// Reducers
+//------------------------------------------------------------------
 
 const addComponentToEntity = (state, action) => {
   const { entity, component } = action.payload
@@ -60,17 +66,47 @@ export default reducers(initialState, {
       systems: [
         ...state.systems,
         {
-          id: action.payload.id,
+          id:  action.payload.id,
           requiredComponents: action.payload.requiredComponents,
           entities: []
         }
+      ]
+    }
+  },
+
+  [SYSTEM_ADD_ENTITY]: (state, action) => {
+    const { systemId, entity } = action.payload
+    const index = findIndex(state.systems, systemId)
+
+    // Avoid having repeated entities
+    if (state.systems[index].entities.indexOf(entity) > -1) {
+      return state
+    }
+
+    const updatedSystem = {
+      ...state.systems[index],
+      entities: [ 
+        ...state.systems[index].entities,
+        entity
+      ]
+    }
+
+    return {
+      ...state,
+      systems: [
+        ...state.systems.slice(0, index),
+        ...state.systems.slice(index + 1),
+        updatedSystem
       ]
     }
   }
 
 })
 
+//------------------------------------------------------------------
 // Action creators
+//------------------------------------------------------------------
+
 export const createEntity = (name) => {
   return {
     type: ENTITY_CREATE,
@@ -81,18 +117,27 @@ export const createEntity = (name) => {
 }
 
 export const addComponent = (entity, component) => {
+  return (dispatch, getState) => {
+    dispatch({
+      type: COMPONENT_ADD,
+      payload: {
+        entity,
+        component
+      }
+    })
 
-  // Check current entity components 
-  // Compare requiredComponents for each system with the current entity components
-  // in the cases where the requiredComponents match the entity ones add entity id
-  // into the system
-
-  return {
-    type: COMPONENT_ADD,
-    payload: {
-      entity,
-      component
-    }
+    const componentNames = Object.keys(getEntityComponents(entity, getState()))
+    getSystems(getState()).forEach(system => {
+      if (arrayContainsElements(componentNames, system.requiredComponents)) {
+        dispatch({
+          type: SYSTEM_ADD_ENTITY,
+          payload: {
+            systemId: system.id,
+            entity
+          }
+        })
+      }
+    })
   }
 }
 
@@ -113,9 +158,13 @@ export const createSystem = (id, requiredComponents) => {
   }
 }
 
- 
+//------------------------------------------------------------------
 // Selectors
+//------------------------------------------------------------------
+
 export const getEntities = (state) => state.ecs.entities
+
+const getEntityComponents = (id, state) => getEntities(state)[id]
 
 export const getEntitiesByComponent = (type, state) => {
   return state.ecs.byComponent[type]
