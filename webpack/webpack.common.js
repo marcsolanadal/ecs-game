@@ -7,7 +7,7 @@ const rules = require('./webpack.rules');
 module.exports = {
   mode: 'development',
   entry: [
-    './src/index.js'
+    './src/game/game.js'
   ],
   output: {
     filename: '[name].bundle.js',
@@ -18,7 +18,7 @@ module.exports = {
     extensions: ['.js'],
     alias: {
       utils: path.resolve(__dirname, '../src/utils'),
-      ducks: path.resolve(__dirname, '../src/ducks')
+      engine: path.resolve(__dirname, '../src/engine')
     },
     plugins: [
       new DirectoryNamedWebpackPlugin()

@@ -120,7 +120,7 @@ describe('ecs', () => {
     })
   })
 
-  it.only('should remove entity from system when removing a component', () => {
+  it('should remove entity from system when removing a component', () => {
     store.dispatch(createSystem('sys1', ['position']))
     store.dispatch(createEntity('foo'))
     store.dispatch(addComponent('foo', { 'position': { x: 10, y: 20 } }))

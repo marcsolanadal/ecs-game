@@ -1,4 +1,4 @@
-import store from '../initializeStore'
+import store from 'engine/initializeStore'
 
 const configureTest = () => {
   return store

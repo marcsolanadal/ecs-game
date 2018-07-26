@@ -1,5 +1,7 @@
-import { reducers } from 'utils/reduxHelpers'
-import { arrayContainsElements, findIndexById } from './helpers'
+import { reducers } from '../helpers'
+
+// TODO: Check if this is used somewhere else when the project is more mature
+import { arrayContainsElements } from 'utils/arrayHelpers'
 
 const ENTITY_CREATE = 'ENTITY_CREATE'
 const COMPONENT_ADD = 'COMPONENT_ADD'

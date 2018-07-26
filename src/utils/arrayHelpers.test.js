@@ -1,7 +1,6 @@
-import configureTest from 'utils/testHelpers'
-import { arrayContainsElements } from './helpers'
+import { arrayContainsElements } from './arrayHelpers'
 
-describe('helpers', () => {
+describe('arrayHelpers', () => {
 
   describe('arrayContainsElements()', () => {
 
