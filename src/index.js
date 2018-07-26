@@ -20,4 +20,7 @@ store.dispatch(createEntity('foo'))
 store.dispatch(addComponent('foo', { 'position': { x: 10, y: 20 } }))
 store.dispatch(addComponent('foo', { 'health': { hp: 100 } }))
 
+store.dispatch(createEntity('bar'))
+store.dispatch(addComponent('bar', { 'position': { x: 20, y: 40 } }))
+
 

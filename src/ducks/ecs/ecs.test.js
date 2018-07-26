@@ -5,7 +5,8 @@ import {
   removeComponent,
   createSystem,
   getEntities, 
-  getSystems
+  getSystems,
+  getSystemsById
 } from './ecs'
 
 describe('ecs', () => {
@@ -28,26 +29,24 @@ describe('ecs', () => {
   })
 
   it('should create a new system', () => {
-    store.dispatch(createSystem('uuid', ['test'], jest.fn()))
+    store.dispatch(createSystem('uuid', ['test']))
 
-    expect(getSystems(store.getState())).toEqual([{ 
+    expect(getSystemsById(store.getState())['uuid']).toEqual({
       id: 'uuid',
       requiredComponents: ['test'],
       entities: []
-    }])
+    })
   })
 
   it('should avoid creating systems with the same name', () => {
-    const createTestSystem = () => store.dispatch(createSystem('test', ['test'], jest.fn()))
+    const createTestSystem = () => store.dispatch(createSystem('test', ['test']))
     createTestSystem();
     expect(createTestSystem).toThrow('Do not create systems with the same id!')
   })
 
   it('should add a component to the entity', () => {
     store.dispatch(createEntity('test'))
-    store.dispatch(addComponent('test', { 
-      'position': { x: 0, y: 0 }
-    }))
+    store.dispatch(addComponent('test', { 'position': { x: 0, y: 0 } }))
 
     expect(getEntities(store.getState())).toEqual({
       'test': {
@@ -78,13 +77,11 @@ describe('ecs', () => {
     store.dispatch(createEntity('foo'))
     store.dispatch(addComponent('foo', { 'position': { x: 10, y: 20 } }))
 
-    expect(getSystems(store.getState())).toEqual([
-      {
-        id: 'sys1',
-        requiredComponents: ['position'],
-        entities: ['foo']
-      }
-    ])
+    expect(getSystemsById(store.getState())['sys1']).toEqual({
+      id: 'sys1',
+      requiredComponents: ['position'],
+      entities: ['foo']
+    })
   })
 
   it('should avoid having repeated entities into the system', () => {
@@ -94,13 +91,11 @@ describe('ecs', () => {
     store.dispatch(addComponent('foo', { 'position': { x: 10, y: 20 } }))
     store.dispatch(addComponent('foo', { 'position': { x: 10, y: 20 } }))
 
-    expect(getSystems(store.getState())).toEqual([
-      {
-        id: 'sys1',
-        requiredComponents: ['position'],
-        entities: ['foo']
-      }
-    ])
+    expect(getSystemsById(store.getState())['sys1']).toEqual({
+      id: 'sys1',
+      requiredComponents: ['position'],
+      entities: ['foo']
+    })
   })
 
   it('should add an entity to multiple systems', () => {
@@ -111,42 +106,38 @@ describe('ecs', () => {
     store.dispatch(addComponent('foo', { 'position': { x: 10, y: 20 } }))
     store.dispatch(addComponent('foo', { 'health': { hp: 100 } }))
 
-    expect(getSystems(store.getState())).toEqual([
-      {
+    expect(getSystemsById(store.getState())).toEqual({
+      'sys1': {
         id: 'sys1',
         requiredComponents: ['position'],
         entities: ['foo']
       },
-      {
+      'sys2': {
         id: 'sys2',
         requiredComponents: ['position', 'health'],
         entities: ['foo']
       }
-    ])
+    })
   })
 
-  it('should remove entity from system when removing a component', () => {
+  it.only('should remove entity from system when removing a component', () => {
     store.dispatch(createSystem('sys1', ['position']))
     store.dispatch(createEntity('foo'))
     store.dispatch(addComponent('foo', { 'position': { x: 10, y: 20 } }))
 
-    expect(getSystems(store.getState())).toEqual([
-      {
-        id: 'sys1',
-        requiredComponents: ['position'],
-        entities: ['foo']
-      }
-    ])
+    expect(getSystemsById(store.getState())['sys1']).toEqual({
+      id: 'sys1',
+      requiredComponents: ['position'],
+      entities: ['foo']
+    })
 
     store.dispatch(removeComponent('foo', 'position'))
 
-    expect(getSystems(store.getState())).toEqual([
-      {
-        id: 'sys1',
-        requiredComponents: ['position'],
-        entities: []
-      }
-    ])
+    expect(getSystemsById(store.getState())['sys1']).toEqual({
+      id: 'sys1',
+      requiredComponents: ['position'],
+      entities: []
+    })
   })
 
 })

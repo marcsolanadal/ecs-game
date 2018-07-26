@@ -10,32 +10,12 @@ const SYSTEM_REMOVE_ENTITY = 'SYSTEM_REMOVE_ENTITY'
 
 const initialState = {
   entities: {},
-  systems: []
+  systems: {}
 }
 
 //------------------------------------------------------------------------------
 // REDUCERS
 //------------------------------------------------------------------------------
-
-function addEntityToSystem(state, entity) {
-  return {
-    ...state,
-    entities: [
-      ...state.entities,
-      entity
-    ]
-  }
-}
-
-function removeEntityFromSystem(state, index) {
-  return {
-    ...state,
-    entities: [ 
-      ...state.entities.slice(0, index),
-      ...state.entities.slice(index + 1)
-    ]
-  }
-}
 
 export default reducers(initialState, {
 
@@ -45,6 +25,21 @@ export default reducers(initialState, {
       entities: {
         ...state.entities,
         [action.payload.name]: {}
+      }
+    }
+  },
+
+  [SYSTEM_CREATE]: (state, action) => {
+    const { id, requiredComponents } = action.payload
+    return {
+      ...state,
+      systems: {
+        ...state.systems,
+        [id]: {
+          id,
+          requiredComponents,
+          entities: []
+        }
       }
     }
   },
@@ -71,50 +66,45 @@ export default reducers(initialState, {
         ...state.entities,
         [entity]: {
           ...state[entity],
-          [componentId]: undefined // removing the selected component
+          [componentId]: undefined
         }
       }
     }
   },
 
-  [SYSTEM_CREATE]: (state, action) => {
-    const { id, requiredComponents } = action.payload
-    return {
-      ...state,
-      systems: [
-        ...state.systems,
-        {
-          id,
-          requiredComponents,
-          entities: []
-        }
-      ]
-    }
-  },
-
   [SYSTEM_ADD_ENTITY]: (state, action) => {
-    const { systemIndex, entity } = action.payload
+    const { id, entity } = action.payload
     return {
       ...state,
-      systems: [
-        ...state.systems.slice(0, systemIndex),
-        ...state.systems.slice(systemIndex + 1),
-        addEntityToSystem(state.systems[systemIndex], action.payload.entity)
-      ]
+      systems: {
+        ...state.systems,
+        [id]: {
+          ...state.systems[id],
+          entities: [
+            ...state.systems[id].entities,
+            entity
+          ]
+        }
+      }
     }
   },
 
   [SYSTEM_REMOVE_ENTITY]: (state, action) => {
-    const { systemIndex, entity } = action.payload
-    const entityIndex = state.systems[systemIndex].entities.indexOf(entity)
+    const { id, entity } = action.payload
+    const index = state.systems[id].entities.indexOf(entity)
 
     return {
       ...state,
-      systems: [
-        ...state.systems.slice(0, systemIndex),
-        ...state.systems.slice(systemIndex + 1),
-        removeEntityFromSystem(state.systems[systemIndex], entityIndex)
-      ]
+      systems: {
+        ...state.systems,
+        [id]: {
+          ...state.systems[id],
+          entities: [
+            ...state.systems[id].entities.slice(0, index),
+            ...state.systems[id].entities.slice(index + 1)
+          ]
+        }
+      }
     }
   }
 
@@ -124,7 +114,7 @@ export default reducers(initialState, {
 // ACTION CREATORS
 //------------------------------------------------------------------------------
 
-export const createEntity = (name) => {
+export function createEntity(name) {
   return {
     type: ENTITY_CREATE,
     payload: {
@@ -133,7 +123,24 @@ export const createEntity = (name) => {
   }
 }
 
-export const addComponent = (entity, component) => {
+export function createSystem(id, requiredComponents) {
+  return (dispatch, getState) => {
+
+    if (systemExists(id, getState())) {
+      throw new Error('Do not create systems with the same id!');
+    }
+
+    return dispatch({
+      type: SYSTEM_CREATE,
+      payload: {
+        id,
+        requiredComponents
+      }
+    })
+  }
+}
+
+export function addComponent(entity, component) {
   return (dispatch, getState) => {
     dispatch({
       type: COMPONENT_ADD,
@@ -143,7 +150,7 @@ export const addComponent = (entity, component) => {
       }
     })
 
-    const componentNames = Object.keys(getEntityComponents(entity, getState()))
+    const componentNames = getEntityComponentIds(entity, getState())
     getSystems(getState()).forEach((system, _, systems) => {
       if (system.entities.indexOf(entity) === -1 
         && arrayContainsElements(componentNames, system.requiredComponents)
@@ -151,7 +158,7 @@ export const addComponent = (entity, component) => {
         dispatch({
           type: SYSTEM_ADD_ENTITY,
           payload: {
-            systemIndex: findIndexById(systems, system.id),
+            id: system.id,
             entity
           }
         })
@@ -175,7 +182,7 @@ export function removeComponent(entity, componentId) {
 
     // TODO: getState doesn't return the updated state so we need to remove the
     // component that was removed in the 
-    const componentNames = Object.keys(getEntityComponents(entity, getState()))
+    const componentNames = getEntityComponentIds(entity, getState())
       .filter(key => key !== componentId)
 
     getSystems(getState()).forEach((system, _, systems) => {
@@ -185,27 +192,10 @@ export function removeComponent(entity, componentId) {
         dispatch({
           type: SYSTEM_REMOVE_ENTITY,
           payload: {
-            systemIndex: findIndexById(systems, system.id),
+            id:  system.id,
             entity
           }
         })
-      }
-    })
-  }
-}
-
-export const createSystem = (id, requiredComponents) => {
-  return (dispatch, getState) => {
-
-    if (systemExists(id, getState())) {
-      throw new Error('Do not create systems with the same id!');
-    }
-
-    return dispatch({
-      type: SYSTEM_CREATE,
-      payload: {
-        id,
-        requiredComponents
       }
     })
   }
@@ -215,11 +205,22 @@ export const createSystem = (id, requiredComponents) => {
 // SELECTORS
 //------------------------------------------------------------------------------
 
-export const getEntities = (state) => state.ecs.entities
-export const getSystems = (state) => state.ecs.systems
+export function getEntities(state) {
+  return state.ecs.entities
+}
 
-const getEntityComponents = (id, state) => getEntities(state)[id]
+function getEntityComponentIds(id, state) {
+  return Object.keys(getEntities(state)[id])
+}
 
-const systemExists = (id, state) => {
+export function getSystems(state) {
+  return Object.keys(state.ecs.systems).map(key => state.ecs.systems[key])
+}
+
+export function getSystemsById(state) {
+  return state.ecs.systems
+}
+
+function systemExists(id, state) {
   return getSystems(state).filter(sys => sys.id === id).length > 0
 }
