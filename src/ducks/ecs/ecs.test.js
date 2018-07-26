@@ -2,11 +2,10 @@ import configureTest from 'utils/testHelpers'
 import { 
   createEntity, 
   addComponent,
+  removeComponent,
   createSystem,
   getEntities, 
-  getEntitiesByComponent,
-  getSystems,
-  getSystemsWithComponents
+  getSystems
 } from './ecs'
 
 describe('ecs', () => {
@@ -57,6 +56,23 @@ describe('ecs', () => {
     })
   })
 
+  it('should remove a component from an entity', () => {
+    store.dispatch(createEntity('test'))
+    store.dispatch(addComponent('test', { 'position': { x: 0, y: 0 } }))
+
+    expect(getEntities(store.getState())).toEqual({
+      'test': {
+        'position': { x: 0, y: 0 }
+      }
+    })
+
+    store.dispatch(removeComponent('test', 'position'))
+
+    expect(getEntities(store.getState())).toEqual({ 
+      'test': {} 
+    })
+  })
+
   xit('should only get the systems that with the requiredComponents', () => {
     store.dispatch(createSystem('sys1', ['foo']))
     store.dispatch(createSystem('sys2', ['foo', 'baz', 'bar']))
@@ -95,7 +111,7 @@ describe('ecs', () => {
     ])
   })
 
-  it('should be able to add entity to multiple systems', () => {
+  it('should add an entity to multiple systems', () => {
     store.dispatch(createSystem('sys1', ['position']))
     store.dispatch(createSystem('sys2', ['position', 'health']))
     store.dispatch(createEntity('foo'))
@@ -117,31 +133,27 @@ describe('ecs', () => {
     ])
   })
 
-  // TODO: This functionality will be provably erased
-  it('should add the entity id into the correct byComponent array', () => {
+  it('should remove entity from system when removing a component', () => {
+    store.dispatch(createSystem('sys1', ['position']))
     store.dispatch(createEntity('foo'))
-    store.dispatch(addComponent('foo', { 
-      'position': { x: 0, y: 0 }
-    }))
+    store.dispatch(addComponent('foo', { 'position': { x: 10, y: 20 } }))
 
-    expect(getEntitiesByComponent('position', store.getState())).toEqual([ 
-      'foo' 
+    expect(getSystems(store.getState())).toEqual([
+      {
+        id: 'sys1',
+        requiredComponents: ['position'],
+        entities: ['foo']
+      }
     ])
 
-    store.dispatch(createEntity('bar'))
-    store.dispatch(addComponent('bar', { 
-      'position': { x: 0, y: 0 }
-    }))
-    expect(getEntitiesByComponent('position', store.getState())).toEqual([
-      'foo', 'bar'
-    ])
+    store.dispatch(removeComponent('foo', 'position'))
 
-    store.dispatch(createEntity('baz'))
-    store.dispatch(addComponent('baz', { 
-      'health': { points: 100 }
-    }))
-    expect(getEntitiesByComponent('health', store.getState())).toEqual([
-      'baz'
+    expect(getSystems(store.getState())).toEqual([
+      {
+        id: 'sys1',
+        requiredComponents: ['position'],
+        entities: []
+      }
     ])
   })
 

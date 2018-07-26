@@ -9,7 +9,8 @@ function arrayContainsElements(array, required) {
   }, true)
 }
 
-function findIndex(array, id) {
+// FIXME: This is confusing since we're searching by id
+function findIndexById(array, id) {
   return array.reduce((acc, item, index) => {
     if (item.id === id) {
       acc = index
@@ -21,5 +22,5 @@ function findIndex(array, id) {
 
 module.exports = {
   arrayContainsElements,
-  findIndex
+  findIndexById
 }
