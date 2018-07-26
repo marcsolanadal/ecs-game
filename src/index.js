@@ -1,5 +1,9 @@
 import store from './initializeStore.js'
 
+// Importing the top level systems should initialize all the systems and
+// get back an object with the system id's and the callbacks
+import Systems from './systems' 
+
 import { 
   createEntity, 
   addComponent,
@@ -10,6 +14,8 @@ import {
 } from './ducks/ecs'
 
 window.store = store
+
+initializeSystems(store)
 
 // System registration
 store.dispatch(createSystem('sys1', ['position']))
@@ -24,3 +30,10 @@ store.dispatch(createEntity('bar'))
 store.dispatch(addComponent('bar', { 'position': { x: 20, y: 40 } }))
 
 
+/*
+getSystems().forEach(system => {
+  system.entities.forEach(entity => {
+    Systems[system.id](entity)
+  })
+}
+*/

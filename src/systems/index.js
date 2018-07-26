@@ -1,7 +1,18 @@
 import MovementSystem from './movement'
 
-export default {
-  Movement: MovementSystem,
+import { createSystem } from '../../ducks/ecs'
+
+export default function initializeSystems(store) {
+
+  // TODO: pass a function to the system that returns the { id: callback }
+  function registerSystem(store, id, requiredComponents, callback) {
+    store.dispatch(createSystem(id, requiredComponents))
+    return { [id]: callback }
+  }
+
+  return {
+    ...MovementSystem(store)
+  }
 }
 
 
