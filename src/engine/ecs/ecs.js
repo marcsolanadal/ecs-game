@@ -4,6 +4,7 @@ import { reducers } from '../helpers'
 import { arrayContainsElements } from 'utils/arrayHelpers'
 
 const ENTITY_CREATE = 'ENTITY_CREATE'
+const ENTITY_EDIT = 'ENTITY_EDIT'
 const COMPONENT_ADD = 'COMPONENT_ADD'
 const COMPONENT_REMOVE = 'COMPONENT_REMOVE'
 const SYSTEM_CREATE = 'SYSTEM_CREATE'
@@ -27,6 +28,21 @@ export default reducers(initialState, {
       entities: {
         ...state.entities,
         [action.payload.name]: {}
+      }
+    }
+  },
+
+  [ENTITY_EDIT]: (state, action) => {
+    const { entity, components } = action.payload
+
+    return {
+      ...state,
+      entities: {
+        ...state.entities,
+        [entity]: {
+          ...state.entities[entity],
+          ...components
+        }
       }
     }
   },
@@ -125,6 +141,16 @@ export function createEntity(name) {
   }
 }
 
+export function editEntity(entity, components) {
+  return {
+    type: ENTITY_EDIT,
+    payload: {
+      entity,
+      components
+    }
+  }
+}
+
 export function createSystem(id, requiredComponents) {
   return (dispatch, getState) => {
 
@@ -194,7 +220,7 @@ export function removeComponent(entity, componentId) {
         dispatch({
           type: SYSTEM_REMOVE_ENTITY,
           payload: {
-            id:  system.id,
+            id: system.id,
             entity
           }
         })

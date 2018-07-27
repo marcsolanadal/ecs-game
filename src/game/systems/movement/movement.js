@@ -4,10 +4,10 @@ export default (registerSystem) => {
     'movement',
     [ 'position' ], 
     (entity) => {
-      console.warn('position system', entity.position)
-      // changeEntity(entity.id, { 
-      //   position: { x: x + 1 }
-      // })
+      const { position } = entity
+      entity.setState({ 
+        position: { x: position.x + 1 }
+      })
     }
   )
 }

@@ -1,6 +1,7 @@
 import configureTest from 'utils/testHelpers'
 import { 
-  createEntity, 
+  createEntity,
+  editEntity,
   addComponent,
   removeComponent,
   createSystem,
@@ -28,7 +29,7 @@ describe('ecs', () => {
     })
   })
 
-  it('should create a new system', () => {
+  it('should create a system', () => {
     store.dispatch(createSystem('uuid', ['test']))
 
     expect(getSystemsById(store.getState())['uuid']).toEqual({
@@ -69,6 +70,53 @@ describe('ecs', () => {
 
     expect(getEntities(store.getState())).toEqual({ 
       'test': {} 
+    })
+  })
+
+  it('should edit an entity component', () => {
+    store.dispatch(createEntity('test'))
+    store.dispatch(addComponent('test', { 'position': { x: 0, y: 0 } }))
+    store.dispatch(addComponent('test', { 'health': { hp: 100 } }))
+
+    expect(getEntities(store.getState())).toEqual({
+      'test': {
+        'position': { x: 0, y: 0 },
+        'health': { hp: 100 }
+      }
+    })
+
+    store.dispatch(editEntity('test', { 'position': { x: 10, y: 10 }}))
+
+    expect(getEntities(store.getState())).toEqual({
+      'test': {
+        'position': { x: 10, y: 10 },
+        'health': { hp: 100 }
+      }
+    })
+  })
+
+  it('should edit multiple entity components at the same time', () => {
+    store.dispatch(createEntity('test'))
+    store.dispatch(addComponent('test', { 'position': { x: 0, y: 0 } }))
+    store.dispatch(addComponent('test', { 'health': { hp: 100 } }))
+
+    expect(getEntities(store.getState())).toEqual({
+      'test': {
+        'position': { x: 0, y: 0 },
+        'health': { hp: 100 }
+      }
+    })
+
+    store.dispatch(editEntity('test', { 
+      'position': { x: 10, y: 10 },
+      'health': { limit: true }
+    }))
+
+    expect(getEntities(store.getState())).toEqual({
+      'test': {
+        'position': { x: 10, y: 10 },
+        'health': { limit: true }
+      }
     })
   })
 
