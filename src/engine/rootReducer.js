@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux'
 
-import ecs from './ecs'
+import ecs from './ecs/ecsRedux'
 
 const appReducer = combineReducers({
   ecs

@@ -8,9 +8,9 @@ import {
   getEntities, 
   getSystems,
   getSystemsById
-} from './ecs'
+} from './ecsRedux'
 
-describe('ecs', () => {
+describe('ECS', () => {
   let store
 
   beforeEach(() => {
