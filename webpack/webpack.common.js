@@ -5,7 +5,6 @@ const DirectoryNamedWebpackPlugin = require('directory-named-webpack-plugin');
 const rules = require('./webpack.rules');
 
 module.exports = {
-  mode: 'development',
   entry: [
     './src/game/game.js'
   ],
@@ -14,6 +13,7 @@ module.exports = {
     path: path.resolve(__dirname, '../dist'),
     publicPath: ''
   },
+  stats: 'minimal',
   resolve: {
     extensions: ['.js'],
     alias: {

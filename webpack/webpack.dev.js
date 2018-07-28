@@ -16,7 +16,8 @@ module.exports = merge(common, {
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({ 
       title: config.name,
-      template: path.resolve(__dirname, '../assets/index.dev.html')
+      template: path.resolve(__dirname, '../assets/index.dev.html'),
+      inject: false
     })
   ],
 });

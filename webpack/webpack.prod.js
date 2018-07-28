@@ -8,6 +8,7 @@ const config = require('../package.json');
 const common = require('./webpack.common.js');
 
 module.exports = merge(common, {
+  mode: 'production',
   devtool: 'source-map',
   plugins: [
     new UglifyJSPlugin({ sourceMap: true }),
@@ -16,7 +17,8 @@ module.exports = merge(common, {
     }),
     new HtmlWebpackPlugin({ 
       title: config.name,
-      template: path.resolve(__dirname, '../assets/index.prod.html')
+      template: path.resolve(__dirname, '../assets/index.prod.html'),
+      inject: false
     })
   ],
 });
